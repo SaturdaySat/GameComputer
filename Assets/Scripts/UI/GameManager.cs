@@ -33,7 +33,6 @@ public class GameManager : MonoBehaviour {
 
 		UIManager.GetInstance ().PushPanel (UIPanelPath.UI_PANEL_MAINGAME);
 
-       
     }
 
 	void OnDisable(){
