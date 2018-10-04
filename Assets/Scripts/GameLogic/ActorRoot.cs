@@ -6,6 +6,7 @@ public class ActorRoot {
 
 	List<BaseComponent> components;
 	public MainGameLinkerComponent maingameLinkerComponent;
+    public VaultComponent vaultComponent;
 
     public void Init()
     {
@@ -13,11 +14,12 @@ public class ActorRoot {
 
         maingameLinkerComponent = new MainGameLinkerComponent();
         maingameLinkerComponent.Init();
-        components.Add(maingameLinkerComponent);
 
-        ComputerCase comCase = new ComputerCase();
-        comCase.Init();
-        maingameLinkerComponent.ComputerCase = comCase;
+        vaultComponent = new VaultComponent();
+        vaultComponent.Init();
+
+        components.Add(maingameLinkerComponent);
+        components.Add(vaultComponent);
     }
 
 

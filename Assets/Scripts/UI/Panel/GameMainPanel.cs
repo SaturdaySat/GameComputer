@@ -80,6 +80,8 @@ public class GameMainPanel : UIBase {
         EventManager.GetInstance().RmvEventListener(EventName.Event_Computer_Slot_Click, OnSlotClick);
     }
 
+
+    //刷新显示 根据每个部件，显示对应的图片资源
     public void RefreshCase()
     {
         if (srcActor == null || comCase == null)
@@ -129,7 +131,7 @@ public class GameMainPanel : UIBase {
 
 	private void OnCPUClick()
 	{
-	
+	    
 	}
 
 	private void OnRAMClick()
@@ -154,25 +156,23 @@ public class GameMainPanel : UIBase {
 
     private void OnSlotClick(EventParam param)
     {
-
-        print("abc");
         if (param.GetType() != typeof(SlotClickEventParam))
         {
             return;
         }
         ComputerPartBase part = ((SlotClickEventParam)param).part;
+
         if (part == null)
         {
             return;
         }
-
-        m_InfoPanel.SetActive(true);
 
         switch (part.Type)
         {
             case ComputerPartType.None:
                 break;
             case ComputerPartType.MotherBoard:
+                ShowMotherBoardInfo((MotherBoard)part);
                 break;
             case ComputerPartType.CPU:
                 break;
@@ -190,6 +190,26 @@ public class GameMainPanel : UIBase {
                 break;
         }
 
+    }
+
+    private void ShowMotherBoardInfo(MotherBoard motherBoard)
+    {
+        if (motherBoard == null)
+        {
+            return;
+        }
+
+        m_InfoPanel.SetActive(true);
+
+        //ICON
+        Image iconImage =  m_InfoPanel.transform.Find("imgIcon").GetComponent<Image>();
+        iconImage.sprite = Resources.Load<Sprite>(ArtPath.ART_UI_ICON + motherBoard.PartIcon);
+
+        Text textTitle = m_InfoPanel.transform.Find("textTitle").GetComponent<Text>();
+        textTitle.text = motherBoard.PartName;
+
+        Text textDesc = m_InfoPanel.transform.Find("textDesc").GetComponent<Text>();
+        textDesc.text = motherBoard.PartDesc;
 
     }
 
