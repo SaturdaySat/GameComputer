@@ -154,6 +154,8 @@ public class GameMainPanel : UIBase {
 
     private void OnSlotClick(EventParam param)
     {
+
+        print("abc");
         if (param.GetType() != typeof(SlotClickEventParam))
         {
             return;

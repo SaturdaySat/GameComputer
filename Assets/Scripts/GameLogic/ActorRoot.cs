@@ -2,27 +2,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActorRoot : MonoBehaviour {
+public class ActorRoot {
 
 	List<BaseComponent> components;
 	public MainGameLinkerComponent maingameLinkerComponent;
 
-	// Use this for initialization
-	void Start () {
-		components = new List<BaseComponent> ();
+    public void Init()
+    {
+        components = new List<BaseComponent>();
 
-		maingameLinkerComponent = new MainGameLinkerComponent ();
-		maingameLinkerComponent.Init ();
-		components.Add (maingameLinkerComponent);
+        maingameLinkerComponent = new MainGameLinkerComponent();
+        maingameLinkerComponent.Init();
+        components.Add(maingameLinkerComponent);
 
-		ComputerCase comCase = new ComputerCase ();
-		comCase.Init ();
-		maingameLinkerComponent.ComputerCase = comCase;
-		ActorHelper.GetInstance ().SetHostActor (this);
-	}
-	
-	// Update is called once per frame
-	void Update () {
+        ComputerCase comCase = new ComputerCase();
+        comCase.Init();
+        maingameLinkerComponent.ComputerCase = comCase;
+    }
+
+
+    // Update is called once per frame
+    public void Update () {
 		foreach (var item in components)
 		{
 			item.Update ();

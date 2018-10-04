@@ -5,11 +5,18 @@ using UnityEngine;
 public class GameManager : MonoBehaviour {
 
 	void Start () {
-		EventManager.GetInstance ().Init ();
+
+        ActorRoot actor = new ActorRoot();
+        actor.Init();
+        ActorHelper.GetInstance().SetHostActor(actor);
+
+        EventManager.GetInstance ().Init ();
 		UIManager.GetInstance ().InitManager ();
 
 		UIManager.GetInstance ().PushPanel (UIPanelPath.UI_PANEL_MAINGAME);
-	}
+
+       
+    }
 
 	void OnDisable(){
 		
@@ -17,6 +24,7 @@ public class GameManager : MonoBehaviour {
 
 	void Update () {
 		UIManager.GetInstance ().UpateUI ();
+        ActorHelper.GetInstance().GetHostActor().Update();
 	}
 
 
