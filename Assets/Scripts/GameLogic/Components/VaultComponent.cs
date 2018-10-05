@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class VaultComponent : BaseComponent {
     private Dictionary<int, MotherBoard> motherBoardsDict;
-    
+
+
     public override void Init()
     {
         base.Init();

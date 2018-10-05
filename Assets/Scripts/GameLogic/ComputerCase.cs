@@ -18,4 +18,11 @@ public class ComputerCase {
 		PowerSlot.Init (ComputerPartType.Power, null);
 		DiskSlot.Init (ComputerPartType.Disk, null);
 	}
+
+    public int GetScore()
+    {
+
+        //TODO
+        return 0;
+    }
 }
