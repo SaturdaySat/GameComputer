@@ -35,7 +35,7 @@ public class EventManager : Singleton<EventManager>{
 	private Dictionary<EventName, UIEvent> eventDict = new Dictionary<EventName, UIEvent>();
 
 
-	public void Init(){
+	public void InitManager(){
 	
 	}
 

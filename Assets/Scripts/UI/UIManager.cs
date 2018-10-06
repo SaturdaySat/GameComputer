@@ -38,13 +38,14 @@ public class UIManager : Singleton<UIManager>{
 	{
 		UIBase uiPanel;
 		uiDict.TryGetValue (uiPath, out uiPanel);
-		if (uiPanel == null){
-			GameObject obj = GameObject.Instantiate (Resources.Load (uiPath)) as GameObject;
-			obj.transform.SetParent (CanvasTransform, false);
-			uiPanel = obj.GetComponent<UIBase> ();
-			uiPanel.Init ();
-			uiDict.Add (uiPath, uiPanel);
-		}
+        if (uiPanel == null)
+        {
+            GameObject obj = GameObject.Instantiate(Resources.Load<GameObject>(uiPath));
+            obj.transform.SetParent(CanvasTransform, false);
+            uiPanel = obj.GetComponent<UIBase>();
+            uiPanel.Init();
+            uiDict.Add(uiPath, uiPanel);
+        }
 		return uiPanel;
 	}
 
@@ -73,6 +74,5 @@ public class UIManager : Singleton<UIManager>{
 		UIBase nextPanel = uiStack.Peek ();
 		nextPanel.OnResume ();
 	}
-		
 }
 	
