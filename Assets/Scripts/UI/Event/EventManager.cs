@@ -8,6 +8,7 @@ public enum EventName
 {
     None,
     Event_Computer_Slot_Click,
+    Event_Bag_Item_Click,
 
     Max,
 }
@@ -22,6 +23,10 @@ public class SlotClickEventParam : EventParam
     public ComputerPartBase part;
 }
 
+public class BagItemClickEventParam : EventParam
+{
+    public ComputerPartBase part;
+}
 
 
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class VaultComponent : BaseComponent {
@@ -34,6 +35,36 @@ public class VaultComponent : BaseComponent {
         return new List<MotherBoard>(motherBoardsDict.Values);
     }
 
+    public List<ComputerPartBase> GetComputerPartList(ComputerPartType type)
+    {
+        List<ComputerPartBase> itemList = new List<ComputerPartBase>();
+
+        switch (type)
+        {
+            case ComputerPartType.None:
+                break;
+            case ComputerPartType.MotherBoard:
+                itemList = GetMotherBoards().Cast<ComputerPartBase>().ToList<ComputerPartBase>();
+                break;
+            case ComputerPartType.CPU:
+                break;
+            case ComputerPartType.RAM:
+                break;
+            case ComputerPartType.VideoCard:
+                break;
+            case ComputerPartType.Power:
+                break;
+            case ComputerPartType.Disk:
+                break;
+            case ComputerPartType.Max:
+                break;
+            default:
+                break;
+        }
+
+        return itemList;
+
+    }
 
 
 }

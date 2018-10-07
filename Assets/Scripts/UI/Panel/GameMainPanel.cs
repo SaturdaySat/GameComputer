@@ -11,6 +11,8 @@ enum GameMainPanelWidgets{
 	Power = 4,
 	Disk = 5,
 	InfoPanel = 6,
+    ItemContent = 7,
+    ItemTemplate = 8,
 }
 
 public class GameMainPanel : UIBase {
@@ -73,11 +75,13 @@ public class GameMainPanel : UIBase {
     private void AddListener()
     {
         EventManager.GetInstance().AddEventListener(EventName.Event_Computer_Slot_Click, OnSlotClick);
+        EventManager.GetInstance().AddEventListener(EventName.Event_Bag_Item_Click, OnBagItemClick);
     }
 
     private void RmvListner()
     {
         EventManager.GetInstance().RmvEventListener(EventName.Event_Computer_Slot_Click, OnSlotClick);
+        EventManager.GetInstance().RmvEventListener(EventName.Event_Bag_Item_Click, OnBagItemClick);
     }
 
 
@@ -110,7 +114,6 @@ public class GameMainPanel : UIBase {
 
 
     }
-
 
     private void CloseAllUI()
     {
@@ -192,6 +195,16 @@ public class GameMainPanel : UIBase {
 
     }
 
+    private void OnBagItemClick(EventParam param)
+    {
+        if(param.GetType() != typeof(BagItemClickEventParam))
+        {
+            return;
+        }
+        ComputerPartBase part = ((BagItemClickEventParam)param).part;
+        Debug.Log(part.PartName);
+    }
+
     private void ShowMotherBoardInfo(MotherBoard motherBoard)
     {
         if (motherBoard == null)
@@ -199,7 +212,9 @@ public class GameMainPanel : UIBase {
             return;
         }
 
+        //背包内容
         m_InfoPanel.SetActive(true);
+        RefreshBag(motherBoard.Type);
 
         //ICON
         Image iconImage =  m_InfoPanel.transform.Find("imgIcon").GetComponent<Image>();
@@ -211,6 +226,81 @@ public class GameMainPanel : UIBase {
         Text textDesc = m_InfoPanel.transform.Find("textDesc").GetComponent<Text>();
         textDesc.text = motherBoard.PartDesc;
 
+
+    }
+
+    private Transform CreateBagItem(int index)
+    {
+        GameObject template = GetWidget((int)GameMainPanelWidgets.ItemTemplate);
+        if(template == null)
+        {
+            return null;
+        }
+        GameObject newBagItem = Instantiate(template, template.transform.parent);
+        newBagItem.name = "bagItem" + index;
+        newBagItem.transform.localScale = template.transform.localScale;
+        newBagItem.transform.position = template.transform.position;
+        newBagItem.transform.rotation = template.transform.rotation;
+        return newBagItem.transform;
+    }
+
+    private void RefreshBagItem(Transform bagItem, ComputerPartBase part)
+    {
+        bagItem.gameObject.SetActive(true);
+        Image imgIcon = bagItem.Find("imgIcon").GetComponent<Image>();
+        imgIcon.sprite = Resources.Load<Sprite>(ArtPath.ART_UI_ICON + part.PartIcon);
+        Text textName = bagItem.Find("textName").GetComponent<Text>();
+        textName.text = part.PartName;
+
+        //添加Param
+        ButtonEvent buttonEvent = bagItem.GetComponent<ButtonEvent>();
+        BagItemClickEventParam param = new BagItemClickEventParam
+        {
+            part = part
+        };
+        buttonEvent.SetParam(param);
+    }
+
+    private void RefreshBag(ComputerPartType type)
+    {
+        //先获取现在这个种类的东西
+        List<ComputerPartBase> itemList = srcActor.vaultComponent.GetComputerPartList(type);
+        if(itemList == null)
+        {
+            return;
+        }
+        GameObject itemContent = GetWidget((int)GameMainPanelWidgets.ItemContent);
+        if(itemContent == null)
+        {
+            return;
+        }
+        int itemCount = itemContent.transform.childCount - 1;
+        int maxCount = itemCount > itemList.Count ? itemCount : itemList.Count;
+
+        //先找一个Item，如果没有则创建一个新的
+        for (int index = 0; index < maxCount; index++)
+        {
+            Transform bagItem = itemContent.transform.Find("bagItem" + index);
+            if(bagItem == null)
+            {
+                //创建一个新的
+                bagItem = CreateBagItem(index);
+                if(bagItem == null)
+                {
+                    return;
+                }
+            }
+            if(index<=itemList.Count)
+            {
+                //代表现在还有需要显示的内
+                RefreshBagItem(bagItem, itemList[index]);
+            }
+            else
+            {
+                //现在没有需要显示的内容，但是有多余的button，需要隐藏
+                bagItem.gameObject.SetActive(false);
+            }
+        }
     }
 
 }
