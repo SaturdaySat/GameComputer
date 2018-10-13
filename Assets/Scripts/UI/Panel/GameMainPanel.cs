@@ -13,12 +13,11 @@ enum GameMainPanelWidgets{
 	InfoPanel = 6,
     ItemContent = 7,
     ItemTemplate = 8,
+    BagPanel = 9,
+    InfoPanelBagItem = 10,
 }
 
 public class GameMainPanel : UIBase {
-
-    private GameObject infoPanel;
-
     private ActorRoot srcActor;
     private ComputerCase comCase;
 
@@ -29,13 +28,17 @@ public class GameMainPanel : UIBase {
     private GameObject m_Power;
     private GameObject m_Disk;
     private GameObject m_InfoPanel;
+    private GameObject m_BagPanel;
+    private GameObject m_InfoPanelBagItem;
+
+    private ComputerPartBase m_selectComputerPart;
+    private ComputerPartBase m_selectBagPart;
+    private int m_selectBagIndex;
 
     public override void Init()
     {
         base.Init();
-        infoPanel = GetWidget((int)GameMainPanelWidgets.InfoPanel);
-        infoPanel.SetActive(false);
-
+        Clear();
         srcActor = ActorHelper.GetInstance().GetHostActor();
         if (srcActor == null)
             return;
@@ -48,6 +51,8 @@ public class GameMainPanel : UIBase {
         m_Power = GetWidget((int)GameMainPanelWidgets.Power);
         m_Disk = GetWidget((int)GameMainPanelWidgets.Disk);
         m_InfoPanel = GetWidget((int)GameMainPanelWidgets.InfoPanel);
+        m_BagPanel = GetWidget((int)GameMainPanelWidgets.BagPanel);
+        m_InfoPanelBagItem = GetWidget((int)GameMainPanelWidgets.InfoPanelBagItem);
 
         m_Motherboard.SetActive(true);
         m_CPU.SetActive(true);
@@ -55,7 +60,9 @@ public class GameMainPanel : UIBase {
         m_VideoCard.SetActive(true);
         m_Power.SetActive(true);
         m_Disk.SetActive(true);
-        m_InfoPanel.SetActive(false);
+        m_InfoPanel.SetActive(false);   //信息显示面板
+        m_BagPanel.SetActive(false);
+        m_InfoPanelBagItem.SetActive(false);
 
         m_Motherboard.GetComponent<Button>().onClick.AddListener(OnMotherBoardClick);
 
@@ -67,23 +74,47 @@ public class GameMainPanel : UIBase {
     public override void UnInit()
     {
         base.UnInit();
-
+        Clear();
         RmvListner();
     }
-
 
     private void AddListener()
     {
         EventManager.GetInstance().AddEventListener(EventName.Event_Computer_Slot_Click, OnSlotClick);
         EventManager.GetInstance().AddEventListener(EventName.Event_Bag_Item_Click, OnBagItemClick);
+        EventManager.GetInstance().AddEventListener(EventName.Event_Open_BagPanel, OnOpenBagPanel);
+        EventManager.GetInstance().AddEventListener(EventName.Event_Close_BagPanel, OnCloseBagPanel);
+        EventManager.GetInstance().AddEventListener(EventName.Event_Close_InfoPanel, OnCloseInfoPanel);
     }
 
     private void RmvListner()
     {
         EventManager.GetInstance().RmvEventListener(EventName.Event_Computer_Slot_Click, OnSlotClick);
         EventManager.GetInstance().RmvEventListener(EventName.Event_Bag_Item_Click, OnBagItemClick);
+        EventManager.GetInstance().RmvEventListener(EventName.Event_Open_BagPanel, OnOpenBagPanel);
+        EventManager.GetInstance().RmvEventListener(EventName.Event_Close_BagPanel, OnCloseBagPanel);
+        EventManager.GetInstance().RmvEventListener(EventName.Event_Close_InfoPanel, OnCloseInfoPanel);
     }
 
+
+    private void Clear()
+    {
+        srcActor = null;
+        comCase = null;
+
+        m_Motherboard = null;
+        m_CPU = null;
+        m_RAM0 = null;
+        m_VideoCard = null;
+        m_Power = null;
+        m_Disk = null;
+        m_InfoPanel = null;
+        m_BagPanel = null;
+
+        m_selectComputerPart = null;
+        m_selectBagPart = null;
+        m_selectBagIndex = -1;
+}
 
     //刷新显示 根据每个部件，显示对应的图片资源
     public void RefreshCase()
@@ -169,7 +200,7 @@ public class GameMainPanel : UIBase {
         {
             return;
         }
-
+        m_selectComputerPart = part;
         switch (part.Type)
         {
             case ComputerPartType.None:
@@ -191,19 +222,57 @@ public class GameMainPanel : UIBase {
                 break;
             default:
                 break;
-
         }
 
     }
 
+    private void OpenInfoPanel()
+    {
+        if (m_InfoPanel)
+        {
+            m_InfoPanel.SetActive(true);
+        }
+    }
+
+    //关闭信息面板
+    private void CloseInfoPanel()
+    {
+        if (m_InfoPanel)
+        {
+            m_InfoPanel.SetActive(false);
+        }
+    }
+
     private void OnBagItemClick(EventParam param)
     {
+        if (param == null)
+            return;
         if(param.GetType() != typeof(BagItemClickEventParam))
         {
             return;
         }
         ComputerPartBase part = ((BagItemClickEventParam)param).part;
-        Debug.Log(part.PartName);
+        m_selectBagPart = part;
+        m_selectBagIndex = ((BagItemClickEventParam)param).index;
+        RefreshBag(part.Type);
+        RefreshBagInfoPanel();
+        Debug.Log(part.PartName+" "+m_selectBagIndex);
+    }
+
+    private void RefreshBagInfoPanel()
+    {
+        if (m_selectBagPart == null || m_selectBagIndex < 0)
+        {
+            m_InfoPanelBagItem.SetActive(false);
+            return;
+        }
+
+        m_InfoPanelBagItem.SetActive(true);
+        Text textTitle = m_InfoPanelBagItem.transform.Find("textTitle").GetComponent<Text>();
+        textTitle.text = m_selectBagPart.PartName;
+
+        Text textDesc = m_InfoPanelBagItem.transform.Find("textDesc").GetComponent<Text>();
+        textDesc.text = m_selectBagPart.PartDesc;
     }
 
     private void ShowMotherBoardInfo(MotherBoard motherBoard)
@@ -213,21 +282,24 @@ public class GameMainPanel : UIBase {
             return;
         }
 
-        //背包内容
-        m_InfoPanel.SetActive(true);
-        RefreshBag(motherBoard.Type);
+        OpenInfoPanel();
+        RefreshInfoPanel(motherBoard);
 
-        //ICON
-        Image iconImage =  m_InfoPanel.transform.Find("imgIcon").GetComponent<Image>();
-        iconImage.sprite = Resources.Load<Sprite>(ArtPath.ART_UI_ICON + motherBoard.PartIcon);
+        //背包内容
+        RefreshBag(motherBoard.Type);
+    }
+
+    //刷新面板信息
+    private void RefreshInfoPanel(ComputerPartBase part)
+    {
+        Image iconImage = m_InfoPanel.transform.Find("imgIcon").GetComponent<Image>();
+        iconImage.sprite = Resources.Load<Sprite>(ArtPath.ART_UI_ICON + part.PartIcon);
 
         Text textTitle = m_InfoPanel.transform.Find("textTitle").GetComponent<Text>();
-        textTitle.text = motherBoard.PartName;
+        textTitle.text = part.PartName;
 
         Text textDesc = m_InfoPanel.transform.Find("textDesc").GetComponent<Text>();
-        textDesc.text = motherBoard.PartDesc;
-
-
+        textDesc.text = part.PartDesc;
     }
 
     private Transform CreateBagItem(int index)
@@ -245,7 +317,7 @@ public class GameMainPanel : UIBase {
         return newBagItem.transform;
     }
 
-    private void RefreshBagItem(Transform bagItem, ComputerPartBase part)
+    private void RefreshBagItem(Transform bagItem, ComputerPartBase part, int index)
     {
         bagItem.gameObject.SetActive(true);
         Image imgIcon = bagItem.Find("imgIcon").GetComponent<Image>();
@@ -254,9 +326,10 @@ public class GameMainPanel : UIBase {
         textName.text = part.PartName;
 
         //添加Param
-        ButtonEvent buttonEvent = bagItem.GetComponent<ButtonEvent>();
+        BagButtonEvent buttonEvent = bagItem.GetComponent<BagButtonEvent>();
         BagItemClickEventParam param = new BagItemClickEventParam
         {
+            index = index,
             part = part
         };
         buttonEvent.SetParam(param);
@@ -294,14 +367,37 @@ public class GameMainPanel : UIBase {
             if(index<=itemList.Count)
             {
                 //代表现在还有需要显示的内
-                RefreshBagItem(bagItem, itemList[index]);
+                RefreshBagItem(bagItem, itemList[index], index);
             }
             else
             {
                 //现在没有需要显示的内容，但是有多余的button，需要隐藏
                 bagItem.gameObject.SetActive(false);
             }
+            bagItem.transform.Find("imgSelect").gameObject.SetActive(m_selectBagIndex == index);
         }
+    }
+
+    private void OnOpenBagPanel(EventParam param)
+    {
+        if (m_BagPanel)
+            m_BagPanel.SetActive(true);
+    }
+
+    private void OnCloseBagPanel(EventParam param)
+    {
+        if (m_BagPanel)
+            m_BagPanel.SetActive(false);
+        if (m_InfoPanelBagItem)
+            m_InfoPanelBagItem.SetActive(false);
+
+        m_selectBagIndex = -1;
+        m_selectBagPart = null;
+    }
+
+    private void OnCloseInfoPanel(EventParam param)
+    {
+        CloseInfoPanel();
     }
 
 }

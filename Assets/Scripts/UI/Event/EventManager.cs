@@ -9,7 +9,9 @@ public enum EventName
     None,
     Event_Computer_Slot_Click,
     Event_Bag_Item_Click,
-
+    Event_Close_InfoPanel,
+    Event_Close_BagPanel,
+    Event_Open_BagPanel,
     Max,
 }
 
@@ -25,6 +27,7 @@ public class SlotClickEventParam : EventParam
 
 public class BagItemClickEventParam : EventParam
 {
+    public int index;
     public ComputerPartBase part;
 }
 
